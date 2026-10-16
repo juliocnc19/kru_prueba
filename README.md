@@ -89,7 +89,7 @@ Próximos pasos: completar la cobertura de acciones y consultas, bloqueo transac
 
 ## Despliegue de la prueba
 
-La aplicación está preparada para Vercel y PostgreSQL de Neon conectado por Vercel Marketplace. El proyecto de Vercel debe definir `DATABASE_URL`, `SESSION_SECRET` (32 caracteres aleatorios o más), `APP_ENV=production`, `PLATFORM_ADMIN_EMAIL` y `PLATFORM_ADMIN_PASSWORD`. Aplicar migraciones con `npm run db:migrate` desde un entorno autorizado antes de publicar. Ejecutar `npm run db:seed` una vez para crear al dueño. Para crear las cuentas de prueba A/B en un entorno público de demostración, ejecutar la semilla con `SEED_DEMO=true` y `DEMO_PASSWORD` configurada; no habilitar esta opción en un sistema real.
+La aplicación está preparada para Vercel y PostgreSQL de Neon conectado por Vercel Marketplace. El proyecto de Vercel debe definir `DATABASE_URL`, `SESSION_SECRET` (32 caracteres aleatorios o más), `APP_ENV=production`, `PLATFORM_ADMIN_EMAIL` y `PLATFORM_ADMIN_PASSWORD`. Aplicar migraciones con `npm run db:migrate` desde un entorno autorizado antes de publicar; el script usa `DATABASE_URL_UNPOOLED` si Neon la proporciona y, de lo contrario, `DATABASE_URL`. Ejecutar `npm run db:seed` una vez para crear al dueño. Para crear las cuentas de prueba A/B en un entorno público de demostración, ejecutar la semilla con `SEED_DEMO=true` y `DEMO_PASSWORD` configurada; no habilitar esta opción en un sistema real.
 
 La URL pública y el repositorio remoto se añadirán al conectar las cuentas de Vercel, Neon y GitHub del titular. Actualmente este checkout no tiene remoto Git configurado ni acceso autenticado a esos servicios, así que la entrega pública aún está pendiente.
 
