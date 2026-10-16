@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "memberships_one_active_company_per_user" ON "memberships" USING btree ("user_id") WHERE "memberships"."ends_at" IS NULL;

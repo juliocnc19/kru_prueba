@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: kru_marcaje
+      POSTGRES_USER: kru
+      POSTGRES_PASSWORD: kru
+    volumes:
+      - kru_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kru -d kru_marcaje"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://kru:kru@db:5432/kru_marcaje
+      SESSION_SECRET: kru-local-only-session-secret-change-in-production-32
+      APP_ENV: local
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - kru_node_modules:/app/node_modules
+    command: sh scripts/entrypoint.sh
+volumes:
+  kru_postgres:
+  kru_node_modules:

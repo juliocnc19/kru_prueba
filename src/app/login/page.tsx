@@ -1,0 +1,6 @@
+import Link from "next/link";
+import { LoginForm } from "./form";
+
+export default function LoginPage() {
+  return <main className="grid min-h-screen lg:grid-cols-2"><section className="flex flex-col justify-between bg-[#102b45] p-8 text-white sm:p-12"><Link href="/" className="text-2xl font-black">Kru <span className="font-light">Marcaje</span></Link><div className="max-w-xl py-20"><p className="mb-5 text-sm font-bold uppercase tracking-[.2em] text-blue-200">Horas claras, equipos tranquilos</p><h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-6xl">Tu jornada en orden. Sin pasos de más.</h1><p className="mt-6 text-lg text-blue-100">Marca desde cualquier pantalla y lleva cada período listo para nómina.</p></div><p className="text-sm text-blue-200">Una experiencia simple para colaboradores y Recursos Humanos.</p></section><section className="flex items-center justify-center p-5 sm:p-10"><div className="surface w-full max-w-md p-7 sm:p-9"><h2 className="text-2xl font-bold">Bienvenido de nuevo</h2><p className="muted mt-2 text-sm">Ingresa con tu cuenta para continuar.</p><LoginForm/><p className="mt-7 border-t border-slate-200 pt-5 text-sm text-slate-600">¿Tu empresa es nueva? <Link href="/registro" className="font-bold text-blue-700 hover:underline">Solicitar registro</Link></p></div></section></main>;
+}
