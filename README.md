@@ -52,7 +52,7 @@ flowchart LR
   Modules --> Drizzle["Drizzle ORM"]
   Drizzle --> PG["PostgreSQL"]
   PG -. "local" .- Docker["Docker Compose"]
-  PG -. "despliegue" .- Neon["Neon vía Vercel Marketplace"]
+  PG -. "despliegue" .- Neon["Neon PostgreSQL"]
 ```
 
 `src/app` contiene las rutas y estados de interfaz; `src/modules` concentra acciones, consultas, validaciones y cálculo por función de negocio; `src/db` contiene el esquema y cliente de datos. El cálculo de nómina, las reglas de fecha, el CSV, la geocerca y las comprobaciones de permiso son funciones independientes del framework. Cada turno conserva la versión de política de su departamento vigente al abrirlo. Las migraciones SQL están en `drizzle/`.
@@ -89,8 +89,12 @@ Próximos pasos: completar la cobertura de acciones y consultas, bloqueo transac
 
 ## Despliegue de la prueba
 
-La aplicación está preparada para Vercel y PostgreSQL de Neon conectado por Vercel Marketplace. El proyecto de Vercel debe definir `DATABASE_URL`, `SESSION_SECRET` (32 caracteres aleatorios o más), `APP_ENV=production`, `PLATFORM_ADMIN_EMAIL` y `PLATFORM_ADMIN_PASSWORD`. Aplicar migraciones con `npm run db:migrate` desde un entorno autorizado antes de publicar; el script usa `DATABASE_URL_UNPOOLED` si Neon la proporciona y, de lo contrario, `DATABASE_URL`. Ejecutar `npm run db:seed` una vez para crear al dueño. Para crear las cuentas de prueba A/B en un entorno público de demostración, ejecutar la semilla con `SEED_DEMO=true` y `DEMO_PASSWORD` configurada; no habilitar esta opción en un sistema real.
+La versión de evaluación está publicada en **[kru-prueba.vercel.app](https://kru-prueba.vercel.app/)**. El código fuente está en **[github.com/juliocnc19/kru_prueba](https://github.com/juliocnc19/kru_prueba)**. Vercel aloja la aplicación y Neon proporciona PostgreSQL. Las migraciones y la semilla de evaluación ya se aplicaron en esa base de datos; las contraseñas del entorno publicado se entregan por separado a los evaluadores y no se guardan en el repositorio.
 
-La URL pública y el repositorio remoto se añadirán al conectar las cuentas de Vercel, Neon y GitHub del titular. Actualmente este checkout no tiene remoto Git configurado ni acceso autenticado a esos servicios, así que la entrega pública aún está pendiente.
+Para recorrer la demostración, abrir `/login`. El dueño de plataforma usa «RRHH / Plataforma» y gestiona solicitudes de empresas y cuentas RRHH en `/plataforma`, sin acceso a sus marcajes. Las cuentas RRHH de `empresa-a` y `empresa-b` usan la misma opción y entran a `/empresa`; cada una solo ve sus propios datos. La colaboradora de `empresa-a` usa «Colaborador» con el código `empresa-a` y la cédula `12345678`, y entra a `/marcar`. Ambas empresas tienen un departamento **General**. Empresa B no tiene colaboradores para mostrar el estado inicial y comprobar el aislamiento entre empresas.
+
+Empresa A incluye un turno cerrado del **5 de octubre de 2026, 06:00–16:00, hora de Caracas**. Al consultar esa semana en «Nómina y reportes» aparecen 10 horas totales y 2 horas extra diurnas. La pertenencia de la colaboradora empieza el 1 de octubre para que el turno de ejemplo quede dentro de su período de actividad. Una empresa registrada desde `/registro` queda pendiente hasta que el dueño la apruebe.
+
+Para reproducir el despliegue en otro proyecto de Vercel, configurar `DATABASE_URL`, `SESSION_SECRET` (al menos 32 caracteres aleatorios), `APP_ENV=production`, `PLATFORM_ADMIN_EMAIL` y `PLATFORM_ADMIN_PASSWORD`. Antes de publicar, aplicar `npm run db:migrate` desde un entorno autorizado; el script prefiere `DATABASE_URL_UNPOOLED` si está disponible. Ejecutar `npm run db:seed` para crear al dueño. Solo en un entorno de demostración, usar `SEED_DEMO=true` y `DEMO_PASSWORD` para crear las cuentas A/B. La semilla no reemplaza la contraseña de un dueño ya existente.
 
 Documentos complementarios: [diseño aprobado](./docs/superpowers/specs/2026-10-15-kru-marcaje-design.md), [bitácora de IA](./docs/ai-log.md) y [nota de negocio](./docs/business-note.md).
