@@ -115,6 +115,8 @@ integration("company, department and employee actions", () => {
     form.set("companyId", companyId);
     form.set("name", "Segundo administrador");
     form.set("email", `hr2-${suffix}@example.test`);
+    form.set("password", "weakpassword");
+    expect(await createHrAction({ error: "" }, form)).toMatchObject({ error: expect.stringContaining("contraseña segura") });
     form.set("password", "Demo12345!");
     expect(await createHrAction({ error: "" }, form)).toMatchObject({ success: "Cuenta de RRHH creada." });
     expect(await createHrAction({ error: "" }, form)).toMatchObject({ error: expect.stringContaining("correo") });

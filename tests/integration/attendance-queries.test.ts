@@ -56,6 +56,9 @@ integration("attendance read models", () => {
   it("classifies today's four states without treating no mark as a labor absence", async () => {
     const { dailyOverview } = await import("@/modules/attendance/queries");
     expect(Object.fromEntries((await dailyOverview()).map(({ name, status }) => [name, status]))).toEqual({ Dentro: "dentro", "Sin marcar": "sin marcar", Completado: "completado", "Sin salida": "sin salida" });
+    await client.query("UPDATE memberships SET starts_at=now()+interval '1 day' WHERE id=$1", [memberships[1]]);
+    expect((await dailyOverview()).some(({ name }) => name === "Sin marcar")).toBe(false);
+    await client.query("UPDATE memberships SET starts_at=now()-interval '1 day' WHERE id=$1", [memberships[1]]);
     mockRequireHr.mockResolvedValueOnce({ role: "hr", companyId: companyB, membershipId: randomUUID() });
     expect(await dailyOverview()).toEqual([]);
   });

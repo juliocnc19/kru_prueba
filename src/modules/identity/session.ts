@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, lte } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db/client";
@@ -47,7 +47,7 @@ export async function getActor(): Promise<Actor | null> {
   const row = rows[0];
   if (!row) return null;
   if (row.user.isPlatformOwner) return { userId: row.user.id, role: "platform", companyId: null, membershipId: null };
-  const activeMemberships = await db.select({ membership: memberships }).from(memberships).innerJoin(companies, eq(memberships.companyId, companies.id)).where(and(eq(memberships.userId, row.user.id), isNull(memberships.endsAt), eq(companies.status, "active"))).limit(1);
+  const activeMemberships = await db.select({ membership: memberships }).from(memberships).innerJoin(companies, eq(memberships.companyId, companies.id)).where(and(eq(memberships.userId, row.user.id), lte(memberships.startsAt, new Date()), isNull(memberships.endsAt), eq(companies.status, "active"))).limit(1);
   const membership = activeMemberships[0]?.membership;
   if (!membership) return null;
   return { userId: row.user.id, role: membership.role, companyId: membership.companyId, membershipId: membership.id };

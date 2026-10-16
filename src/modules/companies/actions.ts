@@ -53,7 +53,8 @@ export async function createHrAction(_previous: ActionState, form: FormData): Pr
   const name = String(form.get("name") ?? "").trim();
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
-  if (!name || !/^[^@]+@[^@]+\.[^@]+$/.test(email) || password.length < 10) return { error: "Nombre, correo y contraseña de 10 caracteres son obligatorios." };
+  const validCredentials = companyRegistrationSchema.pick({ adminName: true, email: true, password: true }).safeParse({ adminName: name, email, password });
+  if (!validCredentials.success) return { error: "Nombre, correo y contraseña segura son obligatorios." };
   const company = (await db.select({ id: companies.id }).from(companies).where(eq(companies.id, companyId)).limit(1))[0];
   if (!company) return { error: "Empresa no encontrada." };
   try {

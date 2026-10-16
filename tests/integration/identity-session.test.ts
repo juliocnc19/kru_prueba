@@ -67,6 +67,9 @@ integration("server sessions and login", () => {
     expect(await getActor()).toMatchObject({ role: "hr", companyId: company, membershipId: hrMembership });
     expect(await requireHr()).toMatchObject({ role: "hr", companyId: company });
     await expect(requirePlatform()).rejects.toThrow("REDIRECT:/sin-permiso");
+    await client.query("UPDATE memberships SET starts_at=now()+interval '1 day' WHERE id=$1", [hrMembership]);
+    expect(await getActor()).toBeNull();
+    await client.query("UPDATE memberships SET starts_at=now()-interval '1 day' WHERE id=$1", [hrMembership]);
     await client.query("UPDATE companies SET status='suspended' WHERE id=$1", [company]);
     expect(await getActor()).toBeNull();
     await client.query("UPDATE companies SET status='active' WHERE id=$1", [company]);
