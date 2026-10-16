@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start --hostname 0.0.0.0",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen --webpack && tsc --noEmit",
     "test": "jest",
     "test:e2e": "playwright test",
     "test:coverage": "jest --coverage --runInBand",
