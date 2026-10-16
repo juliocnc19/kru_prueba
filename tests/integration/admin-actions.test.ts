@@ -30,6 +30,7 @@ integration("company, department and employee actions", () => {
   afterAll(async () => {
     if (companyId) {
       const users = await client.query("SELECT user_id FROM memberships WHERE company_id=$1", [companyId]);
+      await client.query("DELETE FROM sessions WHERE user_id IN (SELECT user_id FROM memberships WHERE company_id=$1)", [companyId]);
       await client.query("DELETE FROM shift_corrections WHERE shift_id IN (SELECT id FROM shifts WHERE company_id=$1)", [companyId]);
       await client.query("DELETE FROM shifts WHERE company_id=$1", [companyId]);
       await client.query("DELETE FROM memberships WHERE company_id=$1", [companyId]);
@@ -109,7 +110,7 @@ integration("company, department and employee actions", () => {
   });
 
   it("lets only the platform workflow add HR accounts and suspend or reactivate a company", async () => {
-    const { createHrAction, changeCompanyStatusAction } = await import("@/modules/companies/actions");
+    const { createHrAction, changeCompanyStatusAction, changeHrStatusAction } = await import("@/modules/companies/actions");
     const form = new FormData();
     form.set("companyId", companyId);
     form.set("name", "Segundo administrador");
@@ -118,6 +119,19 @@ integration("company, department and employee actions", () => {
     expect(await createHrAction({ error: "" }, form)).toMatchObject({ success: "Cuenta de RRHH creada." });
     expect(await createHrAction({ error: "" }, form)).toMatchObject({ error: expect.stringContaining("correo") });
     expect((await client.query("SELECT COUNT(*)::int AS count FROM memberships WHERE company_id=$1 AND role='hr'", [companyId])).rows[0].count).toBe(2);
+    const secondHr = (await client.query("SELECT m.id,m.user_id FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.company_id=$1 AND u.email=$2", [companyId, `hr2-${suffix}@example.test`])).rows[0];
+    await client.query("INSERT INTO sessions(sid_hash,user_id,expires_at) VALUES ($1,$2,now()+interval '1 day')", [randomUUID().replaceAll("-", ""), secondHr.user_id]);
+    const hrStatus = new FormData();
+    hrStatus.set("membershipId", employeeId);
+    hrStatus.set("active", "false");
+    await expect(changeHrStatusAction(hrStatus)).rejects.toThrow("Cuenta de RRHH no encontrada");
+    hrStatus.set("membershipId", secondHr.id);
+    await changeHrStatusAction(hrStatus);
+    expect((await client.query("SELECT active FROM users WHERE id=$1", [secondHr.user_id])).rows[0].active).toBe(false);
+    expect((await client.query("SELECT revoked_at FROM sessions WHERE user_id=$1", [secondHr.user_id])).rows[0].revoked_at).not.toBeNull();
+    hrStatus.set("active", "true");
+    await changeHrStatusAction(hrStatus);
+    expect((await client.query("SELECT active FROM users WHERE id=$1", [secondHr.user_id])).rows[0].active).toBe(true);
     const status = new FormData();
     status.set("companyId", companyId);
     status.set("status", "invalid");

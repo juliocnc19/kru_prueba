@@ -7,11 +7,11 @@ import { PlatformCompanies } from "./table";
 
 export default async function PlatformPage() {
   await requirePlatform();
-  const rows = await db.select({ company: companies, hrName: users.name, hrEmail: users.email }).from(companies).leftJoin(memberships, and(eq(memberships.companyId, companies.id), eq(memberships.role, "hr"))).leftJoin(users, eq(users.id, memberships.userId)).orderBy(desc(companies.createdAt));
-  const byId = new Map<string, { id: string; name: string; code: string; status: "pending" | "active" | "rejected" | "suspended"; createdAt: string; admins: string[] }>();
+  const rows = await db.select({ company: companies, hrMembershipId: memberships.id, hrName: users.name, hrEmail: users.email, hrActive: users.active }).from(companies).leftJoin(memberships, and(eq(memberships.companyId, companies.id), eq(memberships.role, "hr"))).leftJoin(users, eq(users.id, memberships.userId)).orderBy(desc(companies.createdAt));
+  const byId = new Map<string, { id: string; name: string; code: string; status: "pending" | "active" | "rejected" | "suspended"; createdAt: string; admins: { id: string; name: string; email: string; active: boolean }[] }>();
   for (const row of rows) {
     const item = byId.get(row.company.id) ?? { id: row.company.id, name: row.company.name, code: row.company.code, status: row.company.status, createdAt: row.company.createdAt.toISOString().slice(0, 10), admins: [] };
-    if (row.hrEmail) item.admins.push(`${row.hrName} · ${row.hrEmail}`);
+    if (row.hrMembershipId && row.hrEmail && row.hrName && row.hrActive !== null) item.admins.push({ id: row.hrMembershipId, name: row.hrName, email: row.hrEmail, active: row.hrActive });
     byId.set(item.id, item);
   }
   const companiesList = [...byId.values()];

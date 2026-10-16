@@ -83,12 +83,17 @@ test("a company remains pending until the platform owner approves it", async ({ 
   const companyRow = owner.locator("tr").filter({ hasText: companyName });
   await companyRow.getByRole("button", { name: "Aprobar" }).click();
   await expect(companyRow).toContainText("Activa");
-  await ownerContext.close();
-
   const approvedContext = await browser.newContext();
   const approved = await approvedContext.newPage();
+  await companyRow.getByRole("button", { name: "Desactivar" }).click();
+  await expect(companyRow).toContainText("Inactiva");
+  await adminLogin(approved, email);
+  await expect(approved.getByRole("alert").filter({ hasText: "Credenciales inválidas" })).toBeVisible();
+  await companyRow.getByRole("button", { name: "Activar" }).click();
+  await expect(companyRow.getByRole("button", { name: "Desactivar" })).toBeVisible();
   await adminLogin(approved, email);
   await expect(approved).toHaveURL(/\/empresa$/);
+  await ownerContext.close();
   await approvedContext.close();
 });
 

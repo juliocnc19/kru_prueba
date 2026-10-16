@@ -44,7 +44,7 @@ integration("attendance read models", () => {
   afterAll(async () => {
     await client?.query("DELETE FROM shifts WHERE company_id=$1", [companyA]);
     await client?.query("DELETE FROM memberships WHERE company_id=$1", [companyA]);
-    await client?.query("DELETE FROM department_policy_versions WHERE id=$1", [policy]);
+    await client?.query("DELETE FROM department_policy_versions WHERE department_id=$1", [department]);
     await client?.query("DELETE FROM departments WHERE id=$1", [department]);
     await client?.query("DELETE FROM companies WHERE id IN ($1,$2)", [companyA, companyB]);
     for (const user of users) await client?.query("DELETE FROM users WHERE id=$1", [user]);
@@ -65,10 +65,16 @@ integration("attendance read models", () => {
     const panel = await employeeDashboard();
     expect(panel.member?.user.name).toBe("Dentro");
     expect(panel.open?.employeeMembershipId).toBe(memberships[0]);
+    expect(panel.policy?.id).toBe(policy);
+    expect(panel.markDepartment).toBe("General");
     expect(panel.recent).toHaveLength(1);
     expect((await shiftHistory(today)).map(({ employeeName }) => employeeName).sort()).toEqual(["Completado", "Dentro"]);
     expect((await shiftHistory(yesterday)).map(({ employeeName }) => employeeName)).toEqual(["Sin salida"]);
     mockRequireHr.mockResolvedValueOnce({ role: "hr", companyId: companyB, membershipId: randomUUID() });
     expect(await shiftHistory(today)).toEqual([]);
+    await client.query("INSERT INTO department_policy_versions(department_id,version,geofence_required,latitude,longitude,radius_meters) VALUES ($1,2,true,10,-66,30)", [department]);
+    const afterRuleChange = await employeeDashboard();
+    expect(afterRuleChange.policy?.id).toBe(policy);
+    expect(afterRuleChange.policy?.geofenceRequired).toBe(false);
   });
 });

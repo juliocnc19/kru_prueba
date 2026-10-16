@@ -61,7 +61,7 @@ La cookie `kru_session` es `HttpOnly`, `SameSite=Lax` y `Secure` en producción.
 
 ## Reglas importantes
 
-- La empresa solicita el registro; el dueño de plataforma la aprueba antes de que RRHH pueda entrar. Al registrarla se crea el departamento **General**.
+- La empresa solicita el registro; el dueño de plataforma la aprueba antes de que RRHH pueda entrar. También puede crear, desactivar y reactivar cuentas RRHH; al desactivar una cuenta revoca sus sesiones. Al registrar la empresa se crea el departamento **General**.
 - Un colaborador pertenece a un departamento activo. RRHH puede añadir departamentos y mover colaboradores; los turnos anteriores conservan su departamento y reglas originales.
 - La hora del marcaje proviene del servidor y se guarda con precisión de minutos. Un índice único impide dos turnos abiertos para la misma persona. Correcciones requieren motivo y dejan historial de antes/después.
 - La ubicación por departamento es opcional. Se acepta una lectura reciente y suficientemente precisa dentro de 20, 30 o 40 metros según la configuración. Solo se guardan distancia y precisión, no las coordenadas del colaborador.
@@ -81,7 +81,7 @@ La cookie `kru_session` es `HttpOnly`, `SameSite=Lax` y `Secure` en producción.
 
 ## Verificación y límites
 
-Jest cubre cálculo, fechas, geocerca, autenticación, acciones y consultas críticas con pruebas de integración contra PostgreSQL. Playwright comprueba registro y aprobación, acceso por rol, separación entre empresas, exportación, corrección y pantallas de 320 px. Los dos ejemplos de cálculo del enunciado están en `src/modules/payroll/calculate.test.ts`. En la ejecución con PostgreSQL se obtuvo **92,37 % de sentencias, 98,07 % de líneas y 77,86 % de ramas** en `src/modules`; la cobertura de ramas aún puede crecer con más combinaciones de entradas inválidas y errores. Las rutas ejercitadas por Playwright no forman parte de la métrica de Jest.
+Jest cubre cálculo, fechas, geocerca, autenticación, acciones y consultas críticas con pruebas de integración contra PostgreSQL. Playwright comprueba registro y aprobación, acceso por rol, separación entre empresas, exportación, corrección y pantallas de 320 px. Los dos ejemplos de cálculo del enunciado están en `src/modules/payroll/calculate.test.ts`. En la ejecución con PostgreSQL se obtuvo **92,41 % de sentencias, 98,12 % de líneas y 77,22 % de ramas** en `src/modules`; la cobertura de ramas aún puede crecer con más combinaciones de entradas inválidas y errores. Las rutas ejercitadas por Playwright no forman parte de la métrica de Jest.
 
 La ubicación del navegador se puede manipular; este control reduce errores casuales, pero no prueba presencia física. No se incluyen biometría, turnos programados, pausas, nómina monetaria ni integraciones externas porque la prueba se centra en el marcaje y las novedades de horas. Las correcciones modifican el turno y registran auditoría; para un sistema de nómina real se añadiría una política de cierre de períodos y aprobación dual.
 

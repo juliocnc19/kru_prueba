@@ -11,8 +11,14 @@ export async function employeeDashboard() {
   const actor = await requireEmployee();
   const member = (await db.select({ member: memberships, user: users, department: departments }).from(memberships).innerJoin(users, eq(memberships.userId, users.id)).innerJoin(departments, eq(memberships.departmentId, departments.id)).where(and(eq(memberships.id, actor.membershipId), eq(memberships.companyId, actor.companyId))).limit(1))[0];
   const recent = await db.select().from(shifts).where(and(eq(shifts.employeeMembershipId, actor.membershipId), eq(shifts.companyId, actor.companyId))).orderBy(desc(shifts.checkinAt)).limit(10);
-  const policy = member ? (await db.select().from(departmentPolicyVersions).where(eq(departmentPolicyVersions.departmentId, member.department.id)).orderBy(desc(departmentPolicyVersions.version)).limit(1))[0] : undefined;
-  return { member, recent, policy, open: recent.find((shift) => !shift.checkoutAt) ?? null };
+  const open = recent.find((shift) => !shift.checkoutAt) ?? null;
+  const policy = open
+    ? (await db.select().from(departmentPolicyVersions).where(eq(departmentPolicyVersions.id, open.policyVersionId)).limit(1))[0]
+    : member ? (await db.select().from(departmentPolicyVersions).where(eq(departmentPolicyVersions.departmentId, member.department.id)).orderBy(desc(departmentPolicyVersions.version)).limit(1))[0] : undefined;
+  const markDepartment = open
+    ? (await db.select({ name: departments.name }).from(departments).where(and(eq(departments.id, open.departmentId), eq(departments.companyId, actor.companyId))).limit(1))[0]?.name
+    : member?.department.name;
+  return { member, recent, policy, open, markDepartment };
 }
 
 export async function dailyOverview() {

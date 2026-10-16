@@ -3,7 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/client";
-import { companies, departmentPolicyVersions, departments, memberships, users } from "@/db/schema";
+import { companies, departmentPolicyVersions, departments, memberships, sessions, users } from "@/db/schema";
 import { requirePlatform } from "@/modules/identity/session";
 import { hashPassword } from "@/modules/identity/password";
 import { companyRegistrationSchema } from "./validation";
@@ -67,4 +67,18 @@ export async function createHrAction(_previous: ActionState, form: FormData): Pr
   } catch {
     return { error: "No se pudo crear la cuenta. Comprueba si el correo ya existe." };
   }
+}
+
+export async function changeHrStatusAction(form: FormData): Promise<void> {
+  await requirePlatform();
+  const membershipId = String(form.get("membershipId") ?? "");
+  const activeValue = String(form.get("active") ?? "");
+  if (activeValue !== "true" && activeValue !== "false") throw new Error("Estado inválido");
+  const member = (await db.select({ userId: memberships.userId }).from(memberships).where(and(eq(memberships.id, membershipId), eq(memberships.role, "hr"))).limit(1))[0];
+  if (!member) throw new Error("Cuenta de RRHH no encontrada");
+  await db.transaction(async (tx) => {
+    await tx.update(users).set({ active: activeValue === "true" }).where(eq(users.id, member.userId));
+    if (activeValue === "false") await tx.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.userId, member.userId));
+  });
+  revalidatePath("/plataforma");
 }
